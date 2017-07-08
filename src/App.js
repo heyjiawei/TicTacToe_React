@@ -6,13 +6,20 @@ const tableStyle = {
 };
 
 const tableCellStyle = {
-	border: '1px solid black',
-	borderCollapse: 'collapse',
+	border: '1px solid #999',
+	fontSize: '24px',
+	fontWeight: 'bold',
+	height: '34px',
+	marginRight: '-1px',
+	marginTop: '-1px',
+	padding: '0',
+	textAlign: 'center',
+	width: '34px'
 }
 
 function TicTacToeCell(props) {
 	return (
-		<td onClick={props.onClick} >
+		<td onClick={props.onClick} style={tableCellStyle}>
 			{props.value}
 		</td>
 	);
@@ -32,59 +39,22 @@ function getWinner(board) {
 
 	for (var i = 0; i < lines.length; i++) {
 		const [a, b, c] = lines[i];
-		if (board[a] == board[b] &&
-				board[b] == board[c]) {
+		if (board[a] !== null &&
+				board[a] === board[b] &&
+				board[b] === board[c]) {
 			return board[a];
 		}
 	}
 
-	return null;
+	return false;
 }
 
 class TicTacToeBoard extends React.Component {
-	constructor() {
-		super();
-		this.state = {
-			values: Array(9).fill('null'),
-			xIsNext: true,
-			cellsLeft: 9,
-		};
-	}
-
-	componentDidUpdate() {
-		this.checkForWinner();
-	}
-
-	checkForWinner() {
-		const winner = getWinner(this.state.values);
-		console.log(winner);
-		if (winner !== null) {
-			// pop up dialog box
-			console.log('The winner is: ', winner);
-		} else {
-			if (this.state.cellsLeft === 0) {
-				console.log('Ended with a draw!');
-			}
-		}
-	}
-
-	setCell(index) {
-		const values = this.state.values.slice();
-		if (values[index] === 'null') {
-			values[index] = this.state.xIsNext ? 'X' : 'O';
-			this.setState({
-				values: values,
-				xIsNext: !this.state.xIsNext,
-				cellsLeft: (this.state.cellsLeft - 1),
-			});	
-		}
-	}
-
 	renderCell(index) {
 		return (
 			<TicTacToeCell 
-				value={this.state.values[index]}
-				onClick={() => this.setCell(index)}
+				value={this.props.values[index]}
+				onClick={() => this.props.onClick(index)}
 			/>
 		);
 	}
@@ -92,8 +62,7 @@ class TicTacToeBoard extends React.Component {
 	render() {
 		return (
 			<div>
-				<div>Player {this.state.xIsNext ? 'X' : 'O'}'s turn</div>
-				<table>
+				<table style={tableStyle}>
 					<tbody>
 						<tr>
 							{this.renderCell(0)}
@@ -117,33 +86,93 @@ class TicTacToeBoard extends React.Component {
 	}
 }
 
-class Settings extends React.Component {
-	render() {
-		return (
-			<div>
-				<button type='button'>Restart</button>
-				<button type='button'>Undo</button>
-				<button type='button'>Redo</button>
-			</div>
-		);
-	}
-}
-
 class App extends React.Component {
+	constructor() {
+		super();
+		this.state = {
+			history: [{
+				values: Array(9).fill(null),
+			}],
+			stepNumber: 0,
+			xIsNext: true,
+		};
+	}
+
+	handleClick(index) {
+		const history = this.state.history.slice(0, this.state.stepNumber + 1);
+		const current = history[history.length - 1];
+		const values = current.values.slice();
+
+		if (getWinner(values)) {
+			return;
+		}
+
+		values[index] = this.state.xIsNext ? 'X' : 'O';
+
+		this.setState({
+			history: history.concat([{
+				values: values,
+			}]),
+			stepNumber: history.length,
+			xIsNext: !this.state.xIsNext,
+		});
+	}
+
+	restart() {
+		this.setState({
+			history: [{
+				values: Array(9).fill(null),
+			}],
+			xIsNext: true,
+		});
+	}
+
+	jumpTo(index) {
+		this.setState({
+			stepNumber: index,
+			xIsNext: (index % 2) === 0,
+		});
+	}
+
 	render() {
+		const history = this.state.history;
+		const current = history[this.state.stepNumber];
+		const winner = getWinner(current.values);
+
+		const moves = history.map((currentValue, index) => {
+			// If index is > 0, it is true and thus, will show an integer above 0. 
+			const description = index ? 'Move #' + index : 'Game start';
+			
+			return (
+				<li key={index}>
+					<a href='#' onClick={() => this.jumpTo(index)} >{description}</a>
+				</li>
+			);
+		});
+
+		let status;
+		if (winner) {
+			status = 'Player ' + winner + ' Won!';
+		} else {
+			status = 'Player ' + (this.state.xIsNext ? 'X' : 'O') + ' turn';
+		}
+
 		return (
 			<div>
-				<TicTacToeBoard />
-				<Settings />
+				<div>{status}</div>
+				<TicTacToeBoard 
+					values={current.values}
+					onClick={(index) => this.handleClick(index)}
+				/>
+				<div>
+					<button type='button' onClick={this.restart.bind(this)} >Restart</button>
+				</div>
+				<div>
+					<ol>{moves}</ol>
+				</div>
 			</div>
 		);
 	}
 }
-
-var MARKING = [
-0,0,1,
-2,1,2,
-1,0,0
-];
 
 export default App;
