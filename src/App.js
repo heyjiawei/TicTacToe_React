@@ -2,7 +2,7 @@ import React from 'react';
 
 const tableStyle = {
 	border: '1px solid black',
-	borderCollapse: 'collapse',
+	borderCollapse: 'collapse'
 };
 
 const tableCellStyle = {
@@ -15,9 +15,9 @@ const tableCellStyle = {
 	padding: '0',
 	textAlign: 'center',
 	width: '34px'
-}
+};
 
-function TicTacToeCell(props) {
+function TicTacToeCell (props) {
 	return (
 		<td onClick={props.onClick} style={tableCellStyle}>
 			{props.value}
@@ -25,7 +25,7 @@ function TicTacToeCell(props) {
 	);
 }
 
-function getWinner(board) {
+function getWinner (board) {
 	const lines = [
 		[0, 3, 6],
 		[1, 4, 7],
@@ -50,16 +50,15 @@ function getWinner(board) {
 }
 
 class TicTacToeBoard extends React.Component {
-	renderCell(index) {
+	renderCell (index) {
 		return (
-			<TicTacToeCell 
-				value={this.props.values[index]}
+			<TicTacToeCell value={this.props.values[index]}
 				onClick={() => this.props.onClick(index)}
 			/>
 		);
 	}
 
-	render() {
+	render () {
 		return (
 			<div>
 				<table style={tableStyle}>
@@ -87,18 +86,18 @@ class TicTacToeBoard extends React.Component {
 }
 
 class App extends React.Component {
-	constructor() {
+	constructor () {
 		super();
 		this.state = {
 			history: [{
-				values: Array(9).fill(null),
+				values: Array(9).fill(null)
 			}],
 			stepNumber: 0,
-			xIsNext: true,
+			xIsNext: true
 		};
 	}
 
-	handleClick(index) {
+	handleClick (index) {
 		const history = this.state.history.slice(0, this.state.stepNumber + 1);
 		const current = history[history.length - 1];
 		const values = current.values.slice();
@@ -111,41 +110,39 @@ class App extends React.Component {
 
 		this.setState({
 			history: history.concat([{
-				values: values,
+				values: values
 			}]),
 			stepNumber: history.length,
-			xIsNext: !this.state.xIsNext,
+			xIsNext: !this.state.xIsNext
 		});
 	}
 
-	restart() {
+	restart () {
 		this.setState({
 			history: [{
-				values: Array(9).fill(null),
+				values: Array(9).fill(null)
 			}],
-			xIsNext: true,
+			xIsNext: true
 		});
 	}
 
-	jumpTo(index) {
+	jumpTo (index) {
 		this.setState({
 			stepNumber: index,
-			xIsNext: (index % 2) === 0,
+			xIsNext: (index % 2) === 0
 		});
 	}
 
-	render() {
+	render () {
 		const history = this.state.history;
 		const current = history[this.state.stepNumber];
 		const winner = getWinner(current.values);
 
 		const moves = history.map((currentValue, index) => {
-			// If index is > 0, it is true and thus, will show an integer above 0. 
 			const description = index ? 'Move #' + index : 'Game start';
-			
 			return (
 				<li key={index}>
-					<a href='#' onClick={() => this.jumpTo(index)} >{description}</a>
+					<a href="#" onClick={() => this.jumpTo(index)} >{description}</a>
 				</li>
 			);
 		});
@@ -160,12 +157,11 @@ class App extends React.Component {
 		return (
 			<div>
 				<div>{status}</div>
-				<TicTacToeBoard 
-					values={current.values}
+				<TicTacToeBoard values={current.values}
 					onClick={(index) => this.handleClick(index)}
 				/>
 				<div>
-					<button type='button' onClick={this.restart.bind(this)} >Restart</button>
+					<button type="button" onClick={this.restart.bind(this)} >Restart</button>
 				</div>
 				<div>
 					<ol>{moves}</ol>
